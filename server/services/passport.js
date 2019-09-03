@@ -33,21 +33,16 @@ passport.use(
        */
       proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      User.findOne({ googleId: profile.id }).then(result => {
-        if (result) {
-          // user already exists
-          //we should say passport that we are done!
-          //done(error,the User)
-          done(null, result);
-        } else {
-          new User({
-            googleId: profile.id
-          })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const result = await User.findOne({ googleId: profile.id });
+      if (result) {
+        // user already exists
+        //we should say passport that we are done!
+        //done(error,the User)
+        return done(null, result);
+      }
+      var user = await new User({ googleId: profile.id }).save();
+      done(null, user);
     }
   )
 );
