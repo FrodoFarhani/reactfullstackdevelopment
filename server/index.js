@@ -7,7 +7,15 @@ require('./models/user');
 //we require this like this because we r not going to use any object of that!
 require('./services/passport');
 
-mongoose.connect(keys.mongoURI);
+mongoose
+  .connect(keys.mongoURI, { useNewUrlParser: true })
+  .then(() => {
+    console.log('MongoDb connected');
+  })
+  .catch(err => {
+    console.log('MongoDb ERROR !!!' + err);
+  });
+
 const app = express();
 
 /**
@@ -34,6 +42,20 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 require('./routes/authRoutes')(app);
+
+if (process.env.NODE_ENV === 'production') {
+  /**
+   * express wiill serve  up production assets like main.js or main.css
+   * express will serve up the index.html file if it does not recognize the route!
+   */
+  app.use(express.static('client/build'));
+
+  // in we do not understand the route we will send index.html file as response
+  const path = require('path');
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
